@@ -8,6 +8,11 @@ const PORT = 3000;
 // Middleare to parse JSON
 app.use(express.json());
 
+// Root endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.json({ message: 'why you here lul' });
+});
+
 // Main endpoint to get content from docs
 app.get('/api/:keyword', async (req: Request, res: Response) => {
   try {
@@ -22,9 +27,14 @@ app.get('/api/:keyword', async (req: Request, res: Response) => {
       type = 'gender';
     } catch (genderError) {
       // Try to find the file in sexuality folder
-      const sexualityPath = join(__dirname, '..', 'docs', 'sexuality', `${keyword}.txt`);
-      content = await readFile(sexualityPath, 'utf-8');
-      type = 'sexuality';
+      try {
+        const sexualityPath = join(__dirname, '..', 'docs', 'sexuality', `${keyword}.txt`);
+        content = await readFile(sexualityPath, 'utf-8');
+        type = 'sexuality';
+      } catch (sexualityError) {
+        // File not found in either folder
+        throw new Error('ENOENT');
+      }
     }
     
     // Return in the specified format
@@ -33,7 +43,7 @@ app.get('/api/:keyword', async (req: Request, res: Response) => {
       type: type
     });
   } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+    if (error instanceof Error && (error.message === 'ENOENT' || ('code' in error && error.code === 'ENOENT'))) {
       res.status(404).json({
         error: 'File not found',
         message: `No content found for keyword: ${req.params.keyword}`
@@ -66,6 +76,13 @@ app.get('/coke', (req: Request, res: Response) =>
         error: "Enhance Your Calm",
         message: "Damn... error 420 is srsly called this?"
     })
+)
+
+app.get('*', (req: Request, res: Response) =>
+  res.status(404).json({
+    error: "Page Not Found",
+    message: "Yeah this is just a simple api mate, nothing major"
+  })
 )
 
 app.listen(PORT, () => {
