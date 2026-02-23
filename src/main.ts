@@ -78,7 +78,7 @@ app.get('/coke', (req: Request, res: Response) =>
     })
 )
 
-app.get('*', (req: Request, res: Response) =>
+app.get('/*path', (req: Request, res: Response) =>
   res.status(404).json({
     error: "Page Not Found",
     message: "Yeah this is just a simple api mate, nothing major"
